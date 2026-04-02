@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>F2D — Hotel Table Reservation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#F59E0B;--gold2:#D97706;--amber:#FCD34D;
+  --cream:#FFFBF0;--warm:#FEF3C7;--brown:#92400E;
+  --dark:#1C1208;--text:#3B2A0A;--muted:#78716C;
+  --red:#EF4444;--green:#10B981;--blue:#3B82F6;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── PAGES ── */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+
+/* ── AUTH PAGE ── */
+#auth-page{background:linear-gradient(135deg,#1C1208 0%,#3B2A0A 40%,#78350F 70%,#D97706 100%);display:none;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:100vh;}
+#auth-page.active{display:flex;}
+.auth-blob{position:absolute;border-radius:50%;opacity:.08;background:var(--gold);}
+.auth-card{background:rgba(255,251,240,0.12);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(253,211,77,0.25);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.4);position:relative;z-index:1;}
+.auth-logo{text-align:center;margin-bottom:1.5rem;}
+.auth-logo .ico{font-size:2.5rem;display:block;margin-bottom:.4rem;}
+.auth-logo h1{font-family:'Playfair Display',serif;color:var(--amber);font-size:1.8rem;}
+.auth-logo p{color:rgba(253,211,77,0.6);font-size:.78rem;letter-spacing:.05em;}
+.role-row{display:flex;background:rgba(0,0,0,0.25);border-radius:10px;padding:4px;margin-bottom:1.4rem;}
+.role-btn{flex:1;padding:.5rem;text-align:center;border-radius:7px;cursor:pointer;color:rgba(253,211,77,0.55);font-size:.84rem;font-weight:500;transition:all .3s;border:none;background:transparent;font-family:'DM Sans',sans-serif;}
+.role-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;box-shadow:0 2px 8px rgba(245,158,11,0.4);}
+.tab-row{display:flex;gap:.5rem;margin-bottom:1.4rem;}
+.tab-btn{flex:1;padding:.48rem;border:1px solid rgba(253,211,77,0.28);border-radius:8px;background:transparent;color:rgba(253,211,77,0.55);cursor:pointer;font-size:.84rem;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.tab-btn.active{background:rgba(253,211,77,0.13);color:var(--amber);border-color:rgba(253,211,77,0.5);}
+.field{margin-bottom:.9rem;position:relative;}
+.field label{display:block;font-size:.73rem;color:rgba(253,211,77,0.65);margin-bottom:.3rem;letter-spacing:.04em;text-transform:uppercase;}
+.field input{width:100%;padding:.68rem 1rem .68rem 2.4rem;background:rgba(0,0,0,0.2);border:1px solid rgba(253,211,77,0.2);border-radius:10px;color:var(--amber);font-size:.88rem;outline:none;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.field input::placeholder{color:rgba(253,211,77,0.28);}
+.field input:focus{border-color:rgba(253,211,77,0.55);background:rgba(0,0,0,0.28);box-shadow:0 0 0 3px rgba(245,158,11,0.14);}
+.field .ipre{position:absolute;left:.72rem;bottom:.72rem;color:rgba(253,211,77,0.38);font-size:.88rem;}
+.btn-primary{width:100%;padding:.78rem;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;color:#fff;font-size:.93rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(245,158,11,0.4);}
+.btn-primary:active{transform:scale(.98);}
+.switch-txt{text-align:center;margin-top:.9rem;color:rgba(253,211,77,0.45);font-size:.8rem;}
+.switch-txt a{color:var(--amber);cursor:pointer;text-decoration:none;font-weight:500;}
+.err-box{background:rgba(239,68,68,0.14);border:1px solid rgba(239,68,68,0.28);border-radius:8px;padding:.55rem .85rem;color:#FCA5A5;font-size:.8rem;margin-bottom:.75rem;display:none;}
+
+/* ── NAV ── */
+.topnav{position:sticky;top:0;z-index:100;background:rgba(255,251,240,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:space-between;padding:.88rem 2rem;box-shadow:0 2px 14px rgba(146,64,14,0.07);}
+.nav-brand{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--brown);font-weight:700;}
+.nav-brand span{color:var(--gold);}
+.nav-right{display:flex;align-items:center;gap:1rem;}
+.nav-user{font-size:.84rem;color:var(--muted);}
+.nav-user strong{color:var(--text);}
+.btn-logout{padding:.38rem .85rem;background:transparent;border:1px solid rgba(245,158,11,0.28);border-radius:8px;color:var(--brown);cursor:pointer;font-size:.8rem;font-family:'DM Sans',sans-serif;transition:all .3s;}
+.btn-logout:hover{background:rgba(245,158,11,0.09);}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,#1C1208 0%,#3B2A0A 60%,#92400E 100%);padding:2.5rem 2rem 2rem;color:var(--amber);position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:250px;height:250px;border-radius:50%;background:rgba(245,158,11,0.07);}
+.hero-greet{font-size:.82rem;color:rgba(253,211,77,0.55);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.25rem;}
+.hero-name{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--amber);}
+.hero-sub{color:rgba(253,211,77,0.45);font-size:.83rem;margin-top:.25rem;}
+.hero-tabs{display:flex;gap:.45rem;margin-top:1.4rem;}
+.htab{padding:.42rem 1rem;border-radius:20px;background:rgba(255,255,255,0.07);color:rgba(253,211,77,0.55);cursor:pointer;font-size:.8rem;border:1px solid rgba(253,211,77,0.13);transition:all .3s;}
+.htab.active{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:600;}
+
+.main{padding:1.5rem 2rem;max-width:1100px;margin:0 auto;}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;align-items:center;gap:.7rem;background:#fff;border:1px solid rgba(245,158,11,0.18);border-radius:14px;padding:.68rem 1rem;margin-bottom:.9rem;box-shadow:0 2px 10px rgba(146,64,14,0.05);}
+.search-bar input{border:none;outline:none;flex:1;font-family:'DM Sans',sans-serif;color:var(--text);background:transparent;font-size:.88rem;}
+.search-bar input::placeholder{color:var(--muted);}
+.chips{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.1rem;}
+.chip{padding:.32rem .85rem;border-radius:20px;background:#fff;border:1px solid rgba(245,158,11,0.22);color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .22s;}
+.chip.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;border-color:var(--gold);transform:scale(1.05);font-weight:500;}
+
+/* ── TABLE CARDS ── */
+.tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:2rem;}
+.tc{background:#fff;border-radius:18px;padding:1.2rem;border:1px solid rgba(245,158,11,0.1);box-shadow:0 4px 14px rgba(146,64,14,0.06);transition:all .3s;position:relative;overflow:hidden;}
+.tc:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(146,64,14,0.13);border-color:rgba(245,158,11,0.28);}
+.tc.occ{opacity:.82;}
+.shimmer{position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(253,211,77,0.07) 50%,transparent 70%);background-size:200% 100%;animation:shimmer 2.5s infinite;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.tc.occ .shimmer{display:none;}
+.tc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;}
+.tc-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--brown);}
+.dot{width:10px;height:10px;border-radius:50%;position:relative;flex-shrink:0;}
+.dot.g{background:var(--green);}
+.dot.g::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:var(--green);opacity:.28;animation:pulse 1.5s ease-in-out infinite;}
+.dot.r{background:var(--red);}
+.dot.r::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:var(--red);opacity:.28;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.28}50%{transform:scale(1.5);opacity:.08}}
+.tc-seats{font-size:.82rem;color:var(--muted);margin-bottom:.38rem;}
+.tc-badge{font-size:.75rem;font-weight:500;padding:.18rem .55rem;border-radius:10px;display:inline-block;}
+.tc-badge.a{background:#D1FAE5;color:#065F46;}
+.tc-badge.o{background:#FEE2E2;color:#991B1B;}
+.tc-note{font-size:.75rem;color:var(--muted);margin-top:.45rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.btn-res{width:100%;margin-top:.85rem;padding:.52rem;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;color:#fff;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.btn-res:hover{box-shadow:0 4px 14px rgba(245,158,11,0.38);transform:translateY(-1px);}
+.btn-res:disabled{background:#D1D5DB;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ── RES CARDS ── */
+.sec-title{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--brown);margin-bottom:.9rem;}
+.res-list{display:flex;flex-direction:column;gap:.8rem;}
+.rc{background:#fff;border-radius:14px;padding:1.05rem 1.2rem;border:1px solid rgba(245,158,11,0.1);box-shadow:0 2px 9px rgba(146,64,14,0.04);transition:all .3s;}
+.rc:hover{box-shadow:0 6px 18px rgba(146,64,14,0.09);}
+.rc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem;}
+.rc-table{font-weight:600;color:var(--brown);}
+.badge{font-size:.7rem;font-weight:600;padding:.2rem .6rem;border-radius:12px;}
+.badge.pending{background:#FEF3C7;color:#92400E;}
+.badge.confirmed{background:#D1FAE5;color:#065F46;}
+.badge.completed{background:#F3F4F6;color:#6B7280;}
+.badge.rejected{background:#FEE2E2;color:#991B1B;}
+.rc-meta{font-size:.78rem;color:var(--muted);display:flex;gap:.9rem;flex-wrap:wrap;}
+.prog{height:4px;border-radius:2px;background:#F3F4F6;margin-top:.7rem;overflow:hidden;}
+.prog-f{height:100%;border-radius:2px;transition:width .5s;}
+.prog-f.pending{background:linear-gradient(90deg,var(--gold),var(--amber));width:33%;}
+.prog-f.confirmed{background:linear-gradient(90deg,var(--green),#34D399);width:66%;}
+.prog-f.completed{background:#D1D5DB;width:100%;}
+.prog-f.rejected{background:var(--red);width:100%;}
+.btn-pay{margin-top:.7rem;padding:.42rem .9rem;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:8px;color:#fff;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.btn-pay:hover{box-shadow:0 4px 11px rgba(16,185,129,0.38);}
+
+/* ── MANAGER HERO ── */
+.mgr-hero{background:linear-gradient(135deg,#0F172A 0%,#1C1208 50%,#3B2A0A 100%);padding:2rem;color:var(--amber);position:relative;overflow:hidden;}
+.mgr-hero::before{content:'';position:absolute;left:-80px;bottom:-80px;width:280px;height:280px;border-radius:50%;background:rgba(245,158,11,0.05);}
+.mgr-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--amber);}
+.mgr-sub{font-size:.8rem;color:rgba(253,211,77,0.45);margin-top:.18rem;}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:.9rem;margin-bottom:1.4rem;}
+.stat{background:#fff;border-radius:16px;padding:1.1rem;border:1px solid rgba(245,158,11,0.1);box-shadow:0 4px 14px rgba(146,64,14,0.06);position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:-18px;right:-18px;width:65px;height:65px;border-radius:50%;opacity:.07;}
+.stat.c1::before{background:var(--gold);}
+.stat.c2::before{background:var(--green);}
+.stat.c3::before{background:var(--red);}
+.stat.c4::before{background:var(--blue);}
+.stat-ico{font-size:1.3rem;margin-bottom:.45rem;}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--brown);}
+.stat-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+
+/* ── MGR TABS ── */
+.mgr-tab-nav{display:flex;gap:.4rem;margin-bottom:1.1rem;padding-bottom:.7rem;border-bottom:1px solid rgba(245,158,11,0.13);}
+.mgr-tab{padding:.42rem .95rem;border-radius:8px;background:transparent;border:1px solid rgba(245,158,11,0.18);color:var(--muted);cursor:pointer;font-size:.8rem;font-family:'DM Sans',sans-serif;transition:all .3s;}
+.mgr-tab.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;border-color:var(--gold);font-weight:600;}
+.msec{display:none;}
+.msec.active{display:block;}
+
+/* ── VIEW TOGGLE ── */
+.view-toggle{display:flex;gap:.35rem;margin-bottom:.9rem;}
+.view-btn{padding:.38rem .75rem;border-radius:8px;border:1px solid rgba(245,158,11,0.22);background:transparent;color:var(--muted);cursor:pointer;font-size:.78rem;font-family:'DM Sans',sans-serif;transition:all .3s;}
+.view-btn.active{background:var(--gold);color:#fff;border-color:var(--gold);}
+
+/* ── MGR CARDS ── */
+.mgr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem;}
+.mc{background:#fff;border-radius:14px;padding:1.05rem;border:1px solid rgba(245,158,11,0.1);box-shadow:0 2px 9px rgba(146,64,14,0.04);}
+.mc.hl{border-color:rgba(245,158,11,0.38);}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem;}
+.mc-name{font-weight:600;color:var(--text);font-size:.88rem;}
+.mc-meta{font-size:.76rem;color:var(--muted);margin-top:.1rem;}
+.mc-acts{display:flex;gap:.45rem;margin-top:.8rem;flex-wrap:wrap;}
+.bsm{padding:.35rem .75rem;border-radius:8px;border:none;font-size:.73rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.bsm:hover{transform:translateY(-1px);}
+.bsm.ok{background:#D1FAE5;color:#065F46;}
+.bsm.ok:hover{background:#A7F3D0;box-shadow:0 3px 10px rgba(16,185,129,0.28);}
+.bsm.no{background:#FEE2E2;color:#991B1B;}
+.bsm.no:hover{background:#FECACA;box-shadow:0 3px 10px rgba(239,68,68,0.28);}
+.bsm.done{background:#E0E7FF;color:#3730A3;}
+.bsm.done:hover{background:#C7D2FE;}
+.bsm.warn{background:#FEF3C7;color:#92400E;}
+
+/* ── TABLE MGMT ── */
+.tlist{display:flex;flex-direction:column;gap:.65rem;}
+.trow{background:#fff;border-radius:12px;padding:.85rem 1.05rem;border:1px solid rgba(245,158,11,0.1);display:flex;align-items:center;gap:.9rem;}
+.tinfo{flex:1;font-size:.86rem;color:var(--text);}
+.tinfo span{font-size:.73rem;color:var(--muted);display:block;margin-top:.08rem;}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:2rem;right:2rem;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;color:#fff;font-size:1.45rem;cursor:pointer;box-shadow:0 6px 18px rgba(245,158,11,0.38);display:flex;align-items:center;justify-content:center;transition:all .3s;z-index:50;}
+.fab:hover{transform:scale(1.1);box-shadow:0 10px 26px rgba(245,158,11,0.48);}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:500;padding:1rem;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:24px;padding:1.7rem;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,0.28);animation:mIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes mIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.m-title{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--brown);margin-bottom:.25rem;}
+.m-sub{font-size:.8rem;color:var(--muted);margin-bottom:1.1rem;}
+.mf{margin-bottom:.9rem;}
+.mf label{display:block;font-size:.74rem;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;}
+.mf input,.mf select{width:100%;padding:.62rem .88rem;border:1px solid rgba(245,158,11,0.22);border-radius:10px;font-size:.86rem;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;background:#FFFDF5;transition:all .3s;}
+.mf input:focus,.mf select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,158,11,0.13);}
+.m-prev{background:var(--warm);border-radius:12px;padding:.9rem;margin-bottom:.9rem;}
+.m-row{display:flex;justify-content:space-between;align-items:center;font-size:.83rem;color:var(--text);}
+.m-row+.m-row{margin-top:.42rem;border-top:1px solid rgba(245,158,11,0.13);padding-top:.42rem;}
+.m-acts{display:flex;gap:.7rem;margin-top:1.1rem;}
+.m-acts button{flex:1;padding:.62rem;border-radius:10px;font-size:.86rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif;}
+.btn-cx{background:#F3F4F6;border:1px solid #E5E7EB;color:var(--muted);}
+.btn-cx:hover{background:#E5E7EB;}
+.btn-cf{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;color:#fff;}
+.btn-cf:hover{box-shadow:0 5px 16px rgba(245,158,11,0.38);}
+
+/* ── SUCCESS ANIM ── */
+.succ{display:none;text-align:center;padding:1.5rem 0;}
+.chk{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--green),#059669);display:flex;align-items:center;justify-content:center;margin:0 auto .7rem;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.chk svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:3;}
+
+/* ── PAYMENT ── */
+.pay-opts{display:flex;gap:.55rem;margin-bottom:.9rem;}
+.po{flex:1;padding:.65rem;border-radius:10px;border:2px solid rgba(245,158,11,0.18);text-align:center;cursor:pointer;transition:all .3s;font-size:.8rem;color:var(--muted);}
+.po.sel{border-color:var(--gold);background:var(--warm);color:var(--brown);font-weight:600;}
+.spinner-wrap{display:none;text-align:center;padding:1rem 0;}
+.spinner{width:34px;height:34px;border:3px solid rgba(245,158,11,0.18);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto .7rem;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wait-badge{display:inline-flex;align-items:center;gap:.45rem;background:var(--warm);padding:.48rem 1rem;border-radius:20px;font-size:.8rem;color:var(--brown);font-weight:600;animation:glow 2s ease-in-out infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(245,158,11,0.25)}50%{box-shadow:0 0 14px rgba(245,158,11,0.55)}}
+
+/* ── TOAST ── */
+.toasts{position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:.45rem;align-items:center;}
+.toast{padding:.62rem 1.2rem;border-radius:24px;font-size:.8rem;font-weight:500;color:#fff;box-shadow:0 5px 18px rgba(0,0,0,0.18);animation:tIn .32s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+@keyframes tIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.toast.s{background:linear-gradient(135deg,#059669,#10B981);}
+.toast.e{background:linear-gradient(135deg,#DC2626,#EF4444);}
+.toast.i{background:linear-gradient(135deg,var(--gold2),var(--gold));}
+
+/* ── EMPTY / SKELETON ── */
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+.empty .ei{font-size:2.8rem;margin-bottom:.7rem;opacity:.38;}
+.empty p{font-size:.85rem;}
+.skel{background:linear-gradient(90deg,#f0e8d8 25%,#e8dcc8 50%,#f0e8d8 75%);background-size:200% 100%;animation:sk 1.4s infinite;border-radius:10px;}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── LOG ── */
+.log-item{background:#fff;border-radius:10px;padding:.72rem 1rem;border:1px solid rgba(245,158,11,0.08);display:flex;justify-content:space-between;align-items:center;font-size:.8rem;}
+.log-item+.log-item{margin-top:.5rem;}
+.log-msg{color:var(--text);flex:1;margin-right:.8rem;}
+.log-meta{font-size:.72rem;color:var(--muted);margin-top:.18rem;}
+
+/* ── LOADING OVERLAY ── */
+#loading-overlay{position:fixed;inset:0;background:rgba(28,18,8,0.65);backdrop-filter:blur(4px);z-index:900;display:flex;align-items:center;justify-content:center;display:none;}
+#loading-overlay.show{display:flex;}
+.ld-box{background:rgba(255,251,240,0.1);border:1px solid rgba(253,211,77,0.2);border-radius:16px;padding:1.5rem 2rem;text-align:center;color:var(--amber);}
+.ld-box .spinner{border-top-color:var(--amber);margin-bottom:.6rem;}
+.ld-box p{font-size:.85rem;opacity:.7;}
+
+@media(max-width:640px){
+  .main{padding:1rem;}
+  .topnav{padding:.72rem 1rem;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .tables-grid{grid-template-columns:1fr 1fr;}
+  .mgr-grid{grid-template-columns:1fr;}
+  .hero,.mgr-hero{padding:1.4rem 1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="ld-box">
+    <div class="spinner" style="width:34px;height:34px;border:3px solid rgba(253,211,77,0.18);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto .6rem;"></div>
+    <p>Connecting to F2D server…</p>
+  </div>
+</div>
+
+<!-- ═══════════ AUTH ═══════════ -->
+<div id="auth-page" class="page active">
+  <div class="auth-blob" style="width:400px;height:400px;top:-150px;left:-150px;"></div>
+  <div class="auth-blob" style="width:300px;height:300px;bottom:-100px;right:-80px;"></div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="ico">🍽️</span>
+      <h1>F2D</h1>
+      <p>Reserve your perfect dining experience</p>
+    </div>
+    <div class="role-row">
+      <button class="role-btn active" id="rb-cust" onclick="setRole('customer',this)">👤 Customer</button>
+      <button class="role-btn" id="rb-mgr"  onclick="setRole('manager',this)">🧑‍💼 Manager</button>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tb-login"  onclick="setTab('login')">Sign In</button>
+      <button class="tab-btn"        id="tb-signup" onclick="setTab('signup')">Sign Up</button>
+    </div>
+    <div class="err-box" id="err-box"></div>
+    <div id="sf" style="display:none;">
+      <div class="field">
+        <label>Full Name</label>
+        <span class="ipre">👤</span>
+        <input id="inp-name" type="text" placeholder="Your full name"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <span class="ipre">✉️</span>
+      <input id="inp-email" type="email" placeholder="you@email.com"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <span class="ipre">🔒</span>
+      <input id="inp-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"/>
+    </div>
+    <button class="btn-primary" id="auth-btn" onclick="doAuth()">Sign In</button>
+    <div class="switch-txt" id="sw-txt">
+      No account? <a onclick="setTab('signup')">Create one</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ CUSTOMER ═══════════ -->
+<div id="cust-page" class="page">
+  <nav class="topnav">
+    <div class="nav-brand">F<span>2</span>D</div>
+    <div class="nav-right">
+      <div class="nav-user">Welcome, <strong id="cu-name">—</strong></div>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-greet">Good Evening</div>
+    <div class="hero-name" id="cu-hero">Guest</div>
+    <div class="hero-sub">What table shall we set for you tonight?</div>
+    <div class="hero-tabs">
+      <div class="htab active" id="ht-browse" onclick="custTab('browse',this)">Browse Tables</div>
+      <div class="htab"        id="ht-myres"  onclick="custTab('myres',this)">My Reservations</div>
+    </div>
+  </div>
+  <div class="main">
+    <div id="sec-browse" class="msec active">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input id="tbl-search" placeholder="Search tables…" oninput="renderTables()"/>
+      </div>
+      <div class="chips">
+        <div class="chip active" onclick="setChip(this,'all')">All</div>
+        <div class="chip" onclick="setChip(this,'2')">2 Seats</div>
+        <div class="chip" onclick="setChip(this,'3')">3–4 Seats</div>
+        <div class="chip" onclick="setChip(this,'5+')">5+ Seats</div>
+        <div class="chip" onclick="setChip(this,'avail')">Available</div>
+      </div>
+      <div class="tables-grid" id="tables-grid"></div>
+    </div>
+    <div id="sec-myres" class="msec">
+      <div class="sec-title">📋 My Reservations</div>
+      <div class="res-list" id="cust-res-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MANAGER ═══════════ -->
+<div id="mgr-page" class="page">
+  <nav class="topnav">
+    <div class="nav-brand">F<span>2</span>D <span style="font-size:.72rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;">Manager Panel</span></div>
+    <div class="nav-right">
+      <div class="nav-user">Manager: <strong id="mgr-name">—</strong></div>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+  <div class="mgr-hero">
+    <div class="mgr-title">Control Panel</div>
+    <div class="mgr-sub">Overview & Reservation Management</div>
+  </div>
+  <div class="main">
+    <div class="stats-row" id="stats-row"></div>
+    <div class="mgr-tab-nav">
+      <button class="mgr-tab active" onclick="mgrTab('res',this)">📋 Reservations</button>
+      <button class="mgr-tab" onclick="mgrTab('tbl',this)">🪑 Tables</button>
+      <button class="mgr-tab" onclick="mgrTab('log',this)">📜 Activity Log</button>
+    </div>
+    <div id="ms-res" class="msec active">
+      <div class="view-toggle">
+        <button class="view-btn active" onclick="setView('card',this)">⊞ Card</button>
+        <button class="view-btn" onclick="setView('list',this)">☰ List</button>
+      </div>
+      <div class="mgr-grid" id="mgr-res-grid"></div>
+    </div>
+    <div id="ms-tbl" class="msec">
+      <div class="tlist" id="mgr-tbl-list"></div>
+    </div>
+    <div id="ms-log" class="msec">
+      <div id="mgr-log-list"></div>
+    </div>
+  </div>
+  <button class="fab" onclick="openAddTbl()" title="Add Table">＋</button>
+</div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Reserve Modal -->
+<div class="modal-bg" id="m-reserve">
+  <div class="modal">
+    <div class="m-title">Reserve Table</div>
+    <div class="m-sub">Secure your spot at F2D</div>
+    <div class="m-prev" id="res-prev"></div>
+    <div class="mf" id="res-time-wrap">
+      <label>Preferred Time</label>
+      <input type="time" id="res-time" value="19:00"/>
+    </div>
+    <div class="mf" id="res-dur-wrap">
+      <label>Duration</label>
+      <select id="res-dur">
+        <option value="1">1 hour</option>
+        <option value="2" selected>2 hours</option>
+        <option value="3">3 hours</option>
+      </select>
+    </div>
+    <div class="succ" id="res-succ">
+      <div class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--brown);margin-bottom:.35rem;">Table Reserved! 🎉</div>
+      <div style="font-size:.83rem;color:var(--muted);line-height:1.6;">Your table has been booked.<br>Waiting for manager confirmation.</div>
+      <div style="margin-top:.9rem;display:inline-flex;align-items:center;gap:.4rem;background:var(--warm);padding:.45rem 1rem;border-radius:20px;font-size:.76rem;color:var(--brown);font-weight:600;">⏳ Pending Approval</div>
+    </div>
+    <div class="m-acts" id="res-acts">
+      <button class="btn-cx" onclick="closeM('m-reserve')">Cancel</button>
+      <button class="btn-cf" id="res-confirm-btn" onclick="doReserve()">Confirm Reservation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-bg" id="m-pay">
+  <div class="modal">
+    <div class="m-title">Pay Bill</div>
+    <div class="m-sub">Complete your payment to check out</div>
+    <div class="m-prev" id="pay-prev"></div>
+    <div class="pay-opts">
+      <div class="po sel" onclick="selPay(this,'upi')">📱 UPI</div>
+      <div class="po" onclick="selPay(this,'card')">💳 Card</div>
+      <div class="po" onclick="selPay(this,'cash')">💵 Cash</div>
+    </div>
+    <div class="mf" id="pay-upi"><label>UPI ID</label><input placeholder="yourname@upi"/></div>
+    <div class="mf" id="pay-card" style="display:none;"><label>Card Number</label><input placeholder="•••• •••• •••• ••••" maxlength="19"/></div>
+    <div class="spinner-wrap" id="pay-spin">
+      <div class="spinner"></div>
+      <div style="font-size:.83rem;color:var(--muted);">Processing payment…</div>
+    </div>
+    <div id="pay-wait" style="display:none;text-align:center;padding:.7rem 0;">
+      <div class="wait-badge">⏳ Waiting for Manager Approval</div>
+      <div style="font-size:.76rem;color:var(--muted);margin-top:.45rem;">Payment submitted successfully</div>
+    </div>
+    <div class="m-acts" id="pay-acts">
+      <button class="btn-cx" onclick="closeM('m-pay')">Cancel</button>
+      <button class="btn-cf" onclick="doPay()">Pay Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Table Modal -->
+<div class="modal-bg" id="m-addtbl">
+  <div class="modal">
+    <div class="m-title">Add New Table</div>
+    <div class="m-sub">Configure the new dining table</div>
+    <div class="mf"><label>Table Name</label><input id="at-name" placeholder="e.g. Table 6"/></div>
+    <div class="mf"><label>Seating Capacity</label>
+      <select id="at-seats"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option></select>
+    </div>
+    <div class="mf"><label>Location / Note</label><input id="at-note" placeholder="e.g. Window side, Rooftop"/></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeM('m-addtbl')">Cancel</button>
+      <button class="btn-cf" onclick="doAddTbl()">Add Table</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Table Modal -->
+<div class="modal-bg" id="m-edittbl">
+  <div class="modal">
+    <div class="m-title">Edit Table</div>
+    <div class="m-sub">Update table details</div>
+    <input type="hidden" id="et-id"/>
+    <div class="mf"><label>Table Name</label><input id="et-name"/></div>
+    <div class="mf"><label>Seating Capacity</label>
+      <select id="et-seats"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select>
+    </div>
+    <div class="mf"><label>Location / Note</label><input id="et-note"/></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeM('m-edittbl')">Cancel</button>
+      <button class="btn-cf" onclick="doEditTbl()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ══════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════
+const API = 'http://localhost:5000';
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let currentUser  = null;
+let currentRole  = 'customer';
+let currentTab   = 'login';
+let chipFilter   = 'all';
+let viewMode     = 'card';
+let selTableId   = null;
+let selResId     = null;
+let payMethod    = 'upi';
+
+// local cache
+let allTables       = [];
+let allReservations = [];
+
+// ══════════════════════════════════════
+//  API HELPERS
+// ══════════════════════════════════════
+async function api(path, method='GET', body=null){
+  const opts = { method, headers:{'Content-Type':'application/json'} };
+  if(body) opts.body = JSON.stringify(body);
+  const r = await fetch(API+path, opts);
+  return r.json();
+}
+
+async function refreshData(){
+  try {
+    const [tbls, ress] = await Promise.all([
+      api('/api/tables'),
+      api('/api/reservations')
+    ]);
+    allTables       = tbls;
+    allReservations = ress;
+  } catch(e){ console.error('Refresh failed',e); }
+}
+
+// ══════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════
+function setRole(r, el){
+  currentRole = r;
+  document.getElementById('rb-cust').classList.toggle('active', r==='customer');
+  document.getElementById('rb-mgr').classList.toggle('active',  r==='manager');
+}
+function setTab(t){
+  currentTab = t;
+  document.getElementById('tb-login').classList.toggle('active',  t==='login');
+  document.getElementById('tb-signup').classList.toggle('active', t==='signup');
+  document.getElementById('sf').style.display = t==='signup' ? 'block' : 'none';
+  document.getElementById('auth-btn').textContent = t==='login' ? 'Sign In' : 'Create Account';
+  document.getElementById('sw-txt').innerHTML = t==='login'
+    ? "No account? <a onclick=\"setTab('signup')\">Create one</a>"
+    : "Have an account? <a onclick=\"setTab('login')\">Sign in</a>";
+}
+function showErr(msg){
+  const e=document.getElementById('err-box');
+  e.style.display='block'; e.textContent=msg;
+}
+
+async function doAuth(){
+  const email = document.getElementById('inp-email').value.trim();
+  const pass  = document.getElementById('inp-pass').value;
+  document.getElementById('err-box').style.display='none';
+
+  if(!email||!pass){ showErr('Please fill all fields.'); return; }
+
+  showLoading(true);
+  try {
+    let data;
+    if(currentTab==='signup'){
+      const name = document.getElementById('inp-name').value.trim();
+      if(!name){ showLoading(false); showErr('Please enter your name.'); return; }
+      data = await api('/api/signup','POST',{name,email,password:pass,role:currentRole});
+    } else {
+      data = await api('/api/login','POST',{email,password:pass,role:currentRole});
+    }
+    if(!data.ok){ showLoading(false); showErr(data.error||'Login failed'); return; }
+    currentUser = data.user;
+    await refreshData();
+    showLoading(false);
+    goToDash();
+    toast(`Welcome, ${currentUser.name}! 👋`,'s');
+  } catch(e){
+    showLoading(false);
+    showErr('Cannot connect to server. Make sure the C backend is running on port 8080.');
+  }
+}
+
+function logout(){
+  currentUser=null; allTables=[]; allReservations=[];
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('auth-page').classList.add('active');
+  document.getElementById('inp-email').value='';
+  document.getElementById('inp-pass').value='';
+  document.getElementById('err-box').style.display='none';
+}
+
+function goToDash(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(currentUser.role==='customer'){
+    document.getElementById('cu-name').textContent  = currentUser.name;
+    document.getElementById('cu-hero').textContent  = currentUser.name;
+    document.getElementById('cust-page').classList.add('active');
+    renderTables();
+    renderCustRes();
+  } else {
+    document.getElementById('mgr-name').textContent = currentUser.name;
+    document.getElementById('mgr-page').classList.add('active');
+    renderStats();
+    renderMgrRes();
+    renderTblMgmt();
+    renderLog();
+  }
+}
+
+// ══════════════════════════════════════
+//  CUSTOMER
+// ══════════════════════════════════════
+function custTab(tab, el){
+  document.querySelectorAll('.htab').forEach(h=>h.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sec-browse').classList.toggle('active', tab==='browse');
+  document.getElementById('sec-myres').classList.toggle('active',  tab==='myres');
+  if(tab==='myres') renderCustRes();
+}
+
+function setChip(el, val){
+  chipFilter=val;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderTables();
+}
+
+function renderTables(){
+  const q=(document.getElementById('tbl-search').value||'').toLowerCase();
+  const filtered = allTables.filter(t=>{
+    const mq = t.name.toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q);
+    let mc = true;
+    if(chipFilter==='2')     mc = t.seats===2;
+    else if(chipFilter==='3') mc = t.seats>=3&&t.seats<=4;
+    else if(chipFilter==='5+') mc = t.seats>=5;
+    else if(chipFilter==='avail') mc = t.status==='available';
+    return mq&&mc;
+  });
+
+  const g = document.getElementById('tables-grid');
+  if(!filtered.length){
+    g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">🍽️</div><p>No tables match your search</p></div>`;
+    return;
+  }
+
+  g.innerHTML = filtered.map(t=>{
+    const avail = t.status==='available';
+    // Check if this user has an active reservation for this table
+    const myActive = allReservations.find(r=>
+      r.tableId===t.id && r.userId===currentUser.id &&
+      (r.status==='pending'||r.status==='confirmed')
+    );
+    const canReserve = avail && !myActive;
+    return `
+    <div class="tc ${avail?'':'occ'}">
+      ${avail?'<div class="shimmer"></div>':''}
+      <div class="tc-top">
+        <div class="tc-name">${t.name}</div>
+        <div class="dot ${avail?'g':'r'}"></div>
+      </div>
+      <div class="tc-seats">🪑 ${t.seats} seats</div>
+      <div class="tc-badge ${avail?'a':'o'}">${avail?'Available':'Reserved'}</div>
+      ${t.note?`<div class="tc-note">📍 ${t.note}</div>`:''}
+      ${t.guest?`<div class="tc-note">👤 ${t.guest}</div>`:''}
+      <button class="btn-res" ${canReserve?'':'disabled'}
+        data-tid="${t.id}"
+        onclick="openReserve(${t.id})">
+        ${canReserve?'Reserve Now':'Not Available'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function openReserve(tableId){
+  selTableId = tableId;
+  const t = allTables.find(x=>x.id===tableId);
+  if(!t) return;
+
+  // Reset modal to default state
+  document.getElementById('res-succ').style.cssText = 'display:none';
+  document.getElementById('res-acts').style.display = 'flex';
+  document.getElementById('res-prev').style.display = '';
+  document.getElementById('res-time-wrap').style.display = '';
+  document.getElementById('res-dur-wrap').style.display  = '';
+  document.getElementById('res-confirm-btn').disabled = false;
+  document.getElementById('res-confirm-btn').textContent = 'Confirm Reservation';
+
+  document.getElementById('res-prev').innerHTML=`
+    <div class="m-row"><span>Table</span><strong>${t.name}</strong></div>
+    <div class="m-row"><span>Seats</span><strong>${t.seats}</strong></div>
+    <div class="m-row"><span>Location</span><strong>${t.note||'Main hall'}</strong></div>
+  `;
+  openM('m-reserve');
+}
+
+async function doReserve(){
+  const btn = document.getElementById('res-confirm-btn');
+  btn.disabled=true;
+  btn.textContent='Reserving…';
+
+  const time = document.getElementById('res-time').value;
+  const dur  = parseInt(document.getElementById('res-dur').value);
+
+  try {
+    const data = await api('/api/reserve','POST',{
+      userId:   currentUser.id,
+      tableId:  selTableId,
+      time,
+      duration: dur
+    });
+
+    if(!data.ok){
+      btn.disabled=false;
+      btn.textContent='Confirm Reservation';
+      toast(data.error||'Reservation failed','e');
+      return;
+    }
+
+    // Show success screen
+    document.getElementById('res-prev').style.display      = 'none';
+    document.getElementById('res-time-wrap').style.display = 'none';
+    document.getElementById('res-dur-wrap').style.display  = 'none';
+    document.getElementById('res-acts').style.display      = 'none';
+    document.getElementById('res-succ').style.cssText       = 'display:block !important';
+
+    await refreshData();
+
+    setTimeout(()=>{
+      closeM('m-reserve');
+      toast('Table reserved successfully! 🎉','s');
+      renderTables();
+      renderCustRes();
+    }, 2200);
+
+  } catch(e){
+    btn.disabled=false;
+    btn.textContent='Confirm Reservation';
+    toast('Server error — is the C backend running?','e');
+  }
+}
+
+function renderCustRes(){
+  const myRes = allReservations.filter(r=>r.userId===currentUser.id).reverse();
+  const el = document.getElementById('cust-res-list');
+  if(!myRes.length){
+    el.innerHTML=`<div class="empty"><div class="ei">📭</div><p>No reservations yet. Browse tables to get started!</p></div>`;
+    return;
+  }
+  el.innerHTML = myRes.map(r=>`
+    <div class="rc">
+      <div class="rc-top">
+        <div class="rc-table">${r.tableName} · ${r.seats} seats</div>
+        <span class="badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+      </div>
+      <div class="rc-meta">
+        <span>🕐 ${r.time} (${r.duration}h)</span>
+        <span>💳 ${r.paymentStatus}</span>
+      </div>
+      <div class="prog"><div class="prog-f ${r.status}"></div></div>
+      ${r.status==='confirmed'&&r.paymentStatus==='unpaid'
+        ?`<button class="btn-pay" onclick="openPay(${r.id})">Pay Bill</button>`:''}
+      ${r.paymentStatus==='submitted'
+        ?`<div style="font-size:.73rem;color:var(--green);margin-top:.45rem;">✅ Payment submitted — awaiting manager</div>`:''}
+    </div>
+  `).join('');
+}
+
+async function openPay(resId){
+  selResId = resId;
+  const r = allReservations.find(x=>x.id===resId);
+  document.getElementById('pay-prev').innerHTML=`
+    <div class="m-row"><span>Table</span><strong>${r.tableName}</strong></div>
+    <div class="m-row"><span>Duration</span><strong>${r.duration} hr(s)</strong></div>
+    <div class="m-row"><span>Amount</span><strong style="color:var(--gold2)">₹${r.seats*r.duration*250}</strong></div>
+  `;
+  document.getElementById('pay-spin').style.display='none';
+  document.getElementById('pay-wait').style.display='none';
+  document.getElementById('pay-acts').style.display='flex';
+  document.getElementById('pay-upi').style.display='block';
+  document.getElementById('pay-card').style.display='none';
+  document.querySelectorAll('.po').forEach((p,i)=>{p.classList.toggle('sel',i===0);});
+  payMethod='upi';
+  openM('m-pay');
+}
+function selPay(el,m){
+  payMethod=m;
+  document.querySelectorAll('.po').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('pay-upi').style.display  = m==='upi'  ? 'block':'none';
+  document.getElementById('pay-card').style.display = m==='card' ? 'block':'none';
+}
+async function doPay(){
+  document.getElementById('pay-acts').style.display='none';
+  document.getElementById('pay-spin').style.display='block';
+  try {
+    await new Promise(r=>setTimeout(r,1800)); // simulate processing
+    const data = await api('/api/payment','POST',{reservationId:selResId});
+    document.getElementById('pay-spin').style.display='none';
+    if(!data.ok){ toast(data.error||'Payment failed','e'); closeM('m-pay'); return; }
+    document.getElementById('pay-wait').style.display='block';
+    await refreshData();
+    setTimeout(()=>{
+      closeM('m-pay');
+      toast('Payment submitted! Awaiting manager approval 🕐','i');
+      renderCustRes();
+    },1500);
+  } catch(e){
+    document.getElementById('pay-spin').style.display='none';
+    document.getElementById('pay-acts').style.display='flex';
+    toast('Server error','e');
+  }
+}
+
+// ══════════════════════════════════════
+//  MANAGER
+// ══════════════════════════════════════
+function mgrTab(tab, el){
+  document.querySelectorAll('.mgr-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ms-res').classList.toggle('active', tab==='res');
+  document.getElementById('ms-tbl').classList.toggle('active', tab==='tbl');
+  document.getElementById('ms-log').classList.toggle('active', tab==='log');
+  if(tab==='log') renderLog();
+}
+function setView(mode,el){
+  viewMode=mode;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const g=document.getElementById('mgr-res-grid');
+  g.style.gridTemplateColumns = mode==='list' ? '1fr' : 'repeat(auto-fill,minmax(300px,1fr))';
+  renderMgrRes();
+}
+
+function renderStats(){
+  const avail  = allTables.filter(t=>t.status==='available').length;
+  const active = allReservations.filter(r=>r.status==='confirmed'||r.status==='pending').length;
+  const pend   = allReservations.filter(r=>r.paymentStatus==='submitted'&&r.status!=='completed').length;
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat c1"><div class="stat-ico">🪑</div><div class="stat-num">${allTables.length}</div><div class="stat-lbl">Total Tables</div></div>
+    <div class="stat c2"><div class="stat-ico">✅</div><div class="stat-num">${avail}</div><div class="stat-lbl">Available</div></div>
+    <div class="stat c3"><div class="stat-ico">📋</div><div class="stat-num">${active}</div><div class="stat-lbl">Active Reservations</div></div>
+    <div class="stat c4"><div class="stat-ico">💳</div><div class="stat-num">${pend}</div><div class="stat-lbl">Pending Payments</div></div>
+  `;
+}
+
+function renderMgrRes(){
+  const g = document.getElementById('mgr-res-grid');
+  const res = [...allReservations].reverse();
+  if(!res.length){
+    g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">📭</div><p>No reservations yet</p></div>`;
+    return;
+  }
+  g.innerHTML = res.map(r=>`
+    <div class="mc ${r.status==='pending'?'hl':''}">
+      <div class="mc-top">
+        <div>
+          <div class="mc-name">👤 ${r.userName}</div>
+          <div class="mc-meta">${r.tableName} · ${r.seats} seats · 🕐 ${r.time} (${r.duration}h)</div>
+          <div class="mc-meta" style="margin-top:.18rem;">💳 <strong style="color:${r.paymentStatus==='submitted'||r.paymentStatus==='paid'?'var(--green)':'var(--muted)'}">${r.paymentStatus}</strong></div>
+        </div>
+        <span class="badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+      </div>
+      <div class="mc-acts">
+        ${r.status==='pending'?`
+          <button class="bsm ok"   onclick="mgrAct(${r.id},'confirm')">✅ Confirm</button>
+          <button class="bsm no"   onclick="mgrAct(${r.id},'reject')">❌ Reject</button>`:''}
+        ${r.status==='confirmed'&&(r.paymentStatus==='submitted'||r.paymentStatus==='paid')?`
+          <button class="bsm done" onclick="mgrAct(${r.id},'complete')">🏁 Mark Completed</button>`:''}
+        ${r.status==='confirmed'&&r.paymentStatus==='unpaid'?`
+          <button class="bsm warn" onclick="mgrAct(${r.id},'cancel')">🚫 Cancel</button>`:''}
+        ${r.status==='completed'?`<span style="font-size:.73rem;color:var(--muted);">✔ Done</span>`:''}
+        ${r.status==='rejected'?`<span style="font-size:.73rem;color:var(--red);">✖ Rejected</span>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function mgrAct(resId, action){
+  try {
+    const data = await api('/api/manager/action','POST',{reservationId:resId, action});
+    if(!data.ok){ toast(data.error||'Action failed','e'); return; }
+    await refreshData();
+    renderStats(); renderMgrRes(); renderTblMgmt();
+    const msgs = {confirm:'Reservation confirmed ✅',reject:'Reservation rejected',complete:'Table freed! 🟢',cancel:'Reservation cancelled'};
+    const types = {confirm:'s',reject:'e',complete:'s',cancel:'i'};
+    toast(msgs[action]||'Done', types[action]||'i');
+  } catch(e){ toast('Server error','e'); }
+}
+
+function renderTblMgmt(){
+  const l = document.getElementById('mgr-tbl-list');
+  l.innerHTML = allTables.map(t=>`
+    <div class="trow">
+      <div class="dot ${t.status==='available'?'g':'r'}" style="flex-shrink:0;"></div>
+      <div class="tinfo">
+        <strong>${t.name}</strong> — ${t.seats} seats
+        <span>${t.note||'No note'} · ${t.status==='available'?'Available':'Occupied'+(t.guest?' by '+t.guest:'')}</span>
+      </div>
+      <div style="display:flex;gap:.38rem;">
+        <button class="bsm ok" onclick="openEditTbl(${t.id})">✏️ Edit</button>
+        <button class="bsm no" onclick="doDelTbl(${t.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddTbl(){ openM('m-addtbl'); }
+async function doAddTbl(){
+  const name  = document.getElementById('at-name').value.trim();
+  const seats = document.getElementById('at-seats').value;
+  const note  = document.getElementById('at-note').value.trim();
+  if(!name){ toast('Please enter a table name','e'); return; }
+  try {
+    const data = await api('/api/tables/add','POST',{name,seats,note});
+    if(!data.ok){ toast(data.error,'e'); return; }
+    await refreshData();
+    closeM('m-addtbl');
+    toast(`${name} added! 🪑`,'s');
+    renderTblMgmt(); renderStats(); renderTables();
+    document.getElementById('at-name').value='';
+    document.getElementById('at-note').value='';
+  } catch(e){ toast('Server error','e'); }
+}
+
+function openEditTbl(id){
+  const t = allTables.find(x=>x.id===id);
+  document.getElementById('et-id').value   = id;
+  document.getElementById('et-name').value = t.name;
+  document.getElementById('et-seats').value= t.seats;
+  document.getElementById('et-note').value = t.note||'';
+  openM('m-edittbl');
+}
+async function doEditTbl(){
+  const id    = document.getElementById('et-id').value;
+  const name  = document.getElementById('et-name').value.trim();
+  const seats = document.getElementById('et-seats').value;
+  const note  = document.getElementById('et-note').value.trim();
+  try {
+    const data = await api('/api/tables/edit','POST',{id,name,seats,note});
+    if(!data.ok){ toast(data.error,'e'); return; }
+    await refreshData();
+    closeM('m-edittbl');
+    toast('Table updated ✅','s');
+    renderTblMgmt(); renderTables();
+  } catch(e){ toast('Server error','e'); }
+}
+async function doDelTbl(id){
+  try {
+    const data = await api('/api/tables/delete','POST',{id});
+    if(!data.ok){ toast(data.error,'e'); return; }
+    await refreshData();
+    toast('Table removed','i');
+    renderTblMgmt(); renderStats(); renderTables();
+  } catch(e){ toast('Server error','e'); }
+}
+
+async function renderLog(){
+  try {
+    const data = await api('/api/log');
+    const el = document.getElementById('mgr-log-list');
+    if(!data.length){
+      el.innerHTML=`<div class="empty"><div class="ei">📜</div><p>No activity yet</p></div>`;
+      return;
+    }
+    el.innerHTML = data.map(l=>`
+      <div class="log-item">
+        <div>
+          <div class="log-msg">${l.msg}</div>
+          <div class="log-meta">${l.time}</div>
+        </div>
+        <span class="badge ${l.type==='OK'?'confirmed':l.type==='ERROR'?'rejected':'pending'}">${l.type}</span>
+      </div>
+    `).join('');
+  } catch(e){}
+}
+
+// ══════════════════════════════════════
+//  POLLING — auto-refresh every 4s
+// ══════════════════════════════════════
+setInterval(async()=>{
+  if(!currentUser) return;
+  await refreshData();
+  if(currentUser.role==='customer'){
+    renderTables();
+    renderCustRes();
+  } else {
+    renderStats();
+    renderMgrRes();
+    renderTblMgmt();
+  }
+}, 4000);
+
+// ══════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════
+function openM(id){ document.getElementById(id).classList.add('open'); }
+function closeM(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click', e=>{ if(e.target===bg) bg.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════
+function toast(msg, type='i'){
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+
+// ══════════════════════════════════════
+//  LOADING
+// ══════════════════════════════════════
+function showLoading(v){ document.getElementById('loading-overlay').classList.toggle('show',v); }
+
+// ══════════════════════════════════════
+//  SERVER CHECK on load
+// ══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async()=>{
+  try {
+    await fetch(API+'/api/tables');
+  } catch(e){
+    // show a soft warning in the auth form
+    const e2 = document.getElementById('err-box');
+    e2.style.display='block';
+    e2.style.background='rgba(245,158,11,0.12)';
+    e2.style.borderColor='rgba(245,158,11,0.3)';
+    e2.style.color='#FCD34D';
+    e2.textContent='⚠️ Flask bridge not running. Run: python bridge.py';
+  }
+});
+</script>
+</body>
+</html>
