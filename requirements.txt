@@ -1,3 +1,0 @@
--e flask
-flask-cors
-requests
