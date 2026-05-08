@@ -114,17 +114,6 @@ def index():
                 return f.read()
     return "<h2>Place hotel_reservation.html in the same folder as bridge.py</h2>"
 
-def cleanup(sig=None, frame=None):
-    global c_process
-    if c_process and c_process.poll() is None:
-        print("\n[Bridge] Shutting down C backend...")
-        c_process.terminate()
-        c_process.wait()
-        print("[Bridge] C backend stopped.")
-    sys.exit(0)
-
-signal.signal(signal.SIGINT,  cleanup)
-signal.signal(signal.SIGTERM, cleanup)
 
 if __name__ == "__main__":
     compile_c()
